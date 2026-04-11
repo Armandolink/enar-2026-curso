@@ -197,15 +197,69 @@ var db   = firebase.firestore();
 // ── DETECTAR SESIÓN ───────────────────────────────────────────
 auth.onAuthStateChanged(function(user) {
   if (!user) {
-    // No logueado → mostrar formularios
     document.getElementById('pane-logged').style.display = 'none';
     document.getElementById('pane-auth').style.display   = 'block';
     return;
   }
 
-  // Logueado → guardar en Firestore y mostrar panel
-  saveUser(user);
+  // Verificar si el usuario está registrado o autorizado
+  var ref = db.collection('enar_users').doc(user.uid);
+  ref.get().then(function(snap) {
+    if (snap.exists()) {
+      // El usuario existe (se registró con código, o ya fue validado)
+      var data = snap.data();
+      if (data.blocked) {
+        auth.signOut();
+        showMsg('login', 'error', 'Tu cuenta está bloqueada.');
+        return;
+      }
+      ref.update({
+        emailVerified: user.emailVerified,
+        displayName:   user.displayName || data.displayName || '',
+        lastSeen:      firebase.firestore.Timestamp.now()
+      }).catch(function(){});
+      
+      showLoggedPanel(user, data);
+    } else {
+      // El usuario NO existe en enar_users. 
+      // Si usó Google sin registrarse, validaremos si está en enar_authorized
+      var emailObj = user.email ? user.email.toLowerCase() : '';
+      var key = btoa(emailObj).replace(/=/g,'');
+      db.collection('enar_authorized').doc(key).get().then(function(authSnap) {
+        if (authSnap.exists()) {
+          // Fue invitado por el panel de admin
+          ref.set({
+            uid:           user.uid,
+            email:         user.email,
+            displayName:   user.displayName || authSnap.data().name || '',
+            emailVerified: user.emailVerified,
+            createdAt:     firebase.firestore.Timestamp.now(),
+            blocked:       false
+          }).then(function() {
+            showLoggedPanel(user, { blocked: false });
+          }).catch(function(){});
+        } else {
+          // No está registrado en el sistema y no usó el código
+          auth.signOut();
+          document.getElementById('pane-logged').style.display = 'none';
+          document.getElementById('pane-auth').style.display   = 'block';
+          showMsg('login', 'error', '❌ Debes registrarte primero con un Código de Acceso o ser autorizado por el Administrador.');
+        }
+      }).catch(function() {
+          // En caso de que no tenga permisos de lectura
+          auth.signOut();
+          document.getElementById('pane-logged').style.display = 'none';
+          document.getElementById('pane-auth').style.display   = 'block';
+          showMsg('login', 'error', '❌ Acceso denegado. Regístrate primero.');
+      });
+    }
+  }).catch(function(err) {
+    console.error(err);
+  });
+});
 
+// ── MOSTRAR PANEL DE USUARIO LOGUEADO ─────────────────────────
+function showLoggedPanel(user, dbData) {
   document.getElementById('pane-auth').style.display   = 'none';
   document.getElementById('pane-logged').style.display = 'block';
 
@@ -219,50 +273,21 @@ auth.onAuthStateChanged(function(user) {
   var btnAdmin  = document.getElementById('btn-admin');
 
   if (user.email === ADMIN_EMAIL) {
-    // Es el admin
     notice.className = 'user-notice notice-ok';
     notice.textContent = '✅ Sesión de administrador activa';
     btnAdmin.style.display  = 'block';
     btnCourse.style.display = 'none';
   } else if (!user.emailVerified) {
-    // Email no verificado
     notice.className = 'user-notice notice-warn';
     notice.innerHTML = '📧 Revisa tu correo y haz clic en el enlace de verificación para acceder al curso.<br><small style="margin-top:4px;display:block;">¿No recibiste el correo? <a href="#" onclick="reenviarVerificacion()" style="color:#E65100;">Reenviar</a></small>';
     btnCourse.style.display = 'none';
     btnAdmin.style.display  = 'none';
   } else {
-    // Usuario verificado → puede acceder al curso
     notice.className = 'user-notice notice-ok';
     notice.textContent = '✅ Sesión activa. Listo para estudiar.';
     btnCourse.style.display = 'block';
     btnAdmin.style.display  = 'none';
   }
-});
-
-// ── GUARDAR USUARIO EN FIRESTORE ──────────────────────────────
-function saveUser(user) {
-  var ref = db.collection('enar_users').doc(user.uid);
-  ref.get().then(function(snap) {
-    if (!snap.exists()) {
-      // Nuevo usuario: crear documento completo
-      ref.set({
-        uid:           user.uid,
-        email:         user.email,
-        displayName:   user.displayName || '',
-        emailVerified: user.emailVerified,
-        createdAt:     firebase.firestore.Timestamp.now(),
-        blocked:       false
-      });
-    } else {
-      // Usuario existente: SIEMPRE actualizar emailVerified y displayName
-      // para que el admin vea el estado real de verificación en tiempo real
-      ref.update({
-        emailVerified: user.emailVerified,
-        displayName:   user.displayName || snap.data().displayName || '',
-        lastSeen:      firebase.firestore.Timestamp.now()
-      });
-    }
-  }).catch(function(){});
 }
 
 // ── IR AL CURSO ───────────────────────────────────────────────
