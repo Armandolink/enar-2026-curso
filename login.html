@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENAR 2026 · Acceso al Curso</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--teal:#1D9E75;--teal-d:#0F6E56;--teal-l:#E1F5EE;--slate:#0F1923;}
+body{font-family:'DM Sans',sans-serif;background:var(--slate);min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  position:relative;overflow:hidden;}
+body::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 25% 50%,rgba(29,158,117,0.12) 0%,transparent 60%),
+             radial-gradient(ellipse at 75% 20%,rgba(201,168,76,0.07) 0%,transparent 50%);}
+body::after{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px);
+  background-size:40px 40px;}
+@keyframes fadeup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.container{width:100%;max-width:430px;position:relative;z-index:10;}
+.brand{text-align:center;margin-bottom:26px;animation:fadeup .5s ease both;}
+.brand-badge{display:inline-flex;align-items:center;gap:8px;
+  background:rgba(29,158,117,0.12);border:1px solid rgba(29,158,117,0.25);
+  border-radius:99px;padding:5px 14px 5px 7px;margin-bottom:14px;}
+.brand-icon{width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),var(--teal-d));
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;}
+.brand-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);}
+h1{font-family:'DM Serif Display',serif;font-size:29px;color:#fff;line-height:1.2;margin-bottom:5px;}
+h1 em{color:var(--teal);font-style:normal;}
+.brand p{font-size:12px;color:rgba(255,255,255,0.4);}
+.card{background:rgba(255,255,255,0.97);border-radius:18px;padding:28px;
+  box-shadow:0 24px 70px rgba(0,0,0,0.45);animation:fadeup .5s ease .15s both;}
+/* Tabs */
+.tabs{display:flex;background:#f4f6f9;border-radius:11px;padding:3px;margin-bottom:22px;}
+.tab{flex:1;padding:8px;border-radius:8px;border:none;background:transparent;
+  font-size:13px;font-weight:600;color:#999;cursor:pointer;transition:all .18s;font-family:inherit;}
+.tab.active{background:#fff;color:var(--teal);box-shadow:0 2px 8px rgba(0,0,0,0.09);}
+.form-title{font-size:16px;font-weight:700;color:#111;margin-bottom:3px;}
+.form-sub{font-size:11px;color:#999;margin-bottom:18px;line-height:1.55;}
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#777;margin-bottom:4px;}
+.field input{width:100%;padding:11px 13px;border:1.5px solid #e2e6ea;border-radius:10px;
+  font-size:14px;font-family:inherit;color:#111;transition:border-color .15s;outline:none;}
+.field input:focus{border-color:var(--teal);}
+.field input::placeholder{color:#bbb;}
+.btn{width:100%;padding:12px;border:none;
+  background:linear-gradient(135deg,var(--teal),var(--teal-d));
+  color:#fff;border-radius:10px;font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .2s;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn:hover{transform:translateY(-1px);box-shadow:0 7px 20px rgba(15,110,86,.28);}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.sp{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;
+  border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+.divider{display:flex;align-items:center;gap:9px;margin:14px 0;}
+.divider hr{flex:1;border:none;border-top:1px solid #eee;}
+.divider span{font-size:10px;color:#ccc;font-weight:600;}
+.btn-google{width:100%;padding:10px;border:1.5px solid #e2e6ea;background:#fff;
+  border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+  font-family:inherit;color:#444;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;}
+.btn-google:hover{border-color:#ccc;background:#fafafa;}
+.btn-google svg{width:18px;height:18px;flex-shrink:0;}
+.alert{padding:10px 13px;border-radius:9px;font-size:12px;margin-bottom:13px;display:none;line-height:1.5;}
+.alert.show{display:block;}
+.alert.error{background:#fdecea;color:#c0392b;border:1px solid #f5c6c3;}
+.alert.ok{background:var(--teal-l);color:var(--teal-d);border:1px solid rgba(29,158,117,.3);}
+.forgot{font-size:11px;color:var(--teal);cursor:pointer;text-decoration:underline;margin-top:8px;display:inline-block;}
+.bar{height:3px;border-radius:2px;background:#eee;margin-top:5px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:2px;transition:all .3s;width:0;}
+.footer{margin-top:16px;text-align:center;animation:fadeup .5s ease .3s both;}
+.footer p{font-size:9px;color:rgba(255,255,255,.18);line-height:1.7;}
+/* Panel logueado */
+#pane-logged{display:none;text-align:center;}
+.user-avatar{width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),var(--teal-d));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:800;color:#fff;margin:0 auto 12px;}
+.user-name{font-size:15px;font-weight:700;color:#111;margin-bottom:3px;}
+.user-email{font-size:11px;color:#999;margin-bottom:6px;}
+.user-notice{font-size:12px;padding:10px 14px;border-radius:9px;margin:12px 0;}
+.notice-ok{background:var(--teal-l);color:var(--teal-d);}
+.notice-warn{background:#FFF8E1;color:#E65100;}
+.btn-course{width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal-d));
+  color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:inherit;margin-bottom:9px;}
+.btn-switch{width:100%;padding:10px;background:none;border:1.5px solid #e2e6ea;
+  border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#999;}
+.btn-switch:hover{background:#f9f9f9;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="brand">
+    <div class="brand-badge">
+      <div class="brand-icon">E</div>
+      <span class="brand-lbl">ENAR 2026 · El Salvador</span>
+    </div>
+    <h1>Accede a tu <em>curso</em></h1>
+    <p>Plataforma de estudio ENAR 2026 · Creada por Dr. AJSV</p>
+  </div>
+
+  <div class="card">
+    <!-- Panel ya logueado -->
+    <div id="pane-logged">
+      <div class="user-avatar" id="user-init">?</div>
+      <div class="user-name" id="user-name"></div>
+      <div class="user-email" id="user-email-disp"></div>
+      <div class="user-notice" id="user-notice"></div>
+      <button class="btn-course" id="btn-course" style="display:none;" onclick="irAlCurso()">Ir al curso →</button>
+      <button class="btn-course" id="btn-admin" style="display:none;background:linear-gradient(135deg,#185FA5,#0d3d6e);" onclick="window.location.href='admin.html'">Ir al panel de administrador →</button>
+      <button class="btn-switch" onclick="cerrarSesion()">Cerrar sesión / usar otra cuenta</button>
+    </div>
+
+    <!-- Formularios login/registro -->
+    <div id="pane-auth">
+      <div class="tabs">
+        <button class="tab active" id="tab-login" onclick="showTab('login')">Iniciar sesión</button>
+        <button class="tab" id="tab-reg" onclick="showTab('reg')">Registrarse</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="form-login">
+        <div class="form-title">Bienvenido de vuelta</div>
+        <div class="form-sub">Ingresa con el correo con que compraste el curso</div>
+        <div class="alert" id="msg-login"></div>
+        <div class="field"><label>Correo electrónico</label>
+          <input type="email" id="l-email" placeholder="tucorreo@gmail.com" autocomplete="email"></div>
+        <div class="field"><label>Contraseña</label>
+          <input type="password" id="l-pass" placeholder="Tu contraseña" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <span class="forgot" onclick="doReset()">¿Olvidaste tu contraseña?</span>
+        <br><br>
+        <button class="btn" id="btn-login" onclick="doLogin()">Ingresar al curso →</button>
+        <div class="divider"><hr><span>o continúa con</span><hr></div>
+        <button class="btn-google" onclick="doGoogle()">
+          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continuar con Google
+        </button>
+      </div>
+
+      <!-- REGISTRO -->
+      <div id="form-reg" style="display:none;">
+        <div class="form-title">Crear cuenta</div>
+        <div class="form-sub">Usa el correo con el que compraste el curso.</div>
+        <div class="alert" id="msg-reg"></div>
+        <div class="field"><label>Código de acceso</label>
+          <input type="text" id="r-code" placeholder="Código que recibiste al comprar" style="letter-spacing:.1em;font-weight:700;text-transform:uppercase;"></div>
+        <div class="field"><label>Nombre completo</label>
+          <input type="text" id="r-name" placeholder="Dr. Juan Pérez"></div>
+        <div class="field"><label>Correo electrónico</label>
+          <input type="email" id="r-email" placeholder="tucorreo@gmail.com"></div>
+        <div class="field"><label>Contraseña (mín. 8 caracteres)</label>
+          <input type="password" id="r-pass" placeholder="Elige una contraseña segura" oninput="checkStr(this.value)">
+          <div class="bar"><div class="bar-fill" id="str-bar"></div></div></div>
+        <div class="field"><label>Confirmar contraseña</label>
+          <input type="password" id="r-pass2" placeholder="Repite la contraseña"
+            onkeydown="if(event.key==='Enter')doRegister()"></div>
+        <button class="btn" id="btn-reg" onclick="doRegister()">Crear cuenta →</button>
+        <div class="divider"><hr><span>o continúa con</span><hr></div>
+        <button class="btn-google" onclick="doGoogle()">
+          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continuar con Google
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Acceso personal e intransferible · © 2025–2026 Dr. AJSV · Todos los derechos reservados</p>
+  </div>
+</div>
+
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+var ADMIN_EMAIL = "armadojoseventura@gmail.com";
+
+firebase.initializeApp({
+  apiKey:            "AIzaSyCSrFkPQ8t-CK0KiWNs9VZ_kAJCN01yeww",
+  authDomain:        "enar-2026.firebaseapp.com",
+  projectId:         "enar-2026",
+  storageBucket:     "enar-2026.firebasestorage.app",
+  messagingSenderId: "503924898282",
+  appId:             "1:503924898282:web:79660ac202a880d3279a93"
+});
+
+var auth = firebase.auth();
+var db   = firebase.firestore();
+
+// ── DETECTAR SESIÓN ───────────────────────────────────────────
+auth.onAuthStateChanged(function(user) {
+  if (!user) {
+    // No logueado → mostrar formularios
+    document.getElementById('pane-logged').style.display = 'none';
+    document.getElementById('pane-auth').style.display   = 'block';
+    return;
+  }
+
+  // Logueado → guardar en Firestore y mostrar panel
+  saveUser(user);
+
+  document.getElementById('pane-auth').style.display   = 'none';
+  document.getElementById('pane-logged').style.display = 'block';
+
+  var init = (user.displayName || user.email || '?').substring(0,2).toUpperCase();
+  document.getElementById('user-init').textContent     = init;
+  document.getElementById('user-name').textContent     = user.displayName || 'Usuario';
+  document.getElementById('user-email-disp').textContent = user.email;
+
+  var notice = document.getElementById('user-notice');
+  var btnCourse = document.getElementById('btn-course');
+  var btnAdmin  = document.getElementById('btn-admin');
+
+  if (user.email === ADMIN_EMAIL) {
+    // Es el admin
+    notice.className = 'user-notice notice-ok';
+    notice.textContent = '✅ Sesión de administrador activa';
+    btnAdmin.style.display  = 'block';
+    btnCourse.style.display = 'none';
+  } else if (!user.emailVerified) {
+    // Email no verificado
+    notice.className = 'user-notice notice-warn';
+    notice.innerHTML = '📧 Revisa tu correo y haz clic en el enlace de verificación para acceder al curso.<br><small style="margin-top:4px;display:block;">¿No recibiste el correo? <a href="#" onclick="reenviarVerificacion()" style="color:#E65100;">Reenviar</a></small>';
+    btnCourse.style.display = 'none';
+    btnAdmin.style.display  = 'none';
+  } else {
+    // Usuario verificado → puede acceder al curso
+    notice.className = 'user-notice notice-ok';
+    notice.textContent = '✅ Sesión activa. Listo para estudiar.';
+    btnCourse.style.display = 'block';
+    btnAdmin.style.display  = 'none';
+  }
+});
+
+// ── GUARDAR USUARIO EN FIRESTORE ──────────────────────────────
+function saveUser(user) {
+  var ref = db.collection('enar_users').doc(user.uid);
+  ref.get().then(function(snap) {
+    if (!snap.exists()) {
+      // Nuevo usuario: crear documento completo
+      ref.set({
+        uid:           user.uid,
+        email:         user.email,
+        displayName:   user.displayName || '',
+        emailVerified: user.emailVerified,
+        createdAt:     firebase.firestore.Timestamp.now(),
+        blocked:       false
+      });
+    } else {
+      // Usuario existente: SIEMPRE actualizar emailVerified y displayName
+      // para que el admin vea el estado real de verificación en tiempo real
+      ref.update({
+        emailVerified: user.emailVerified,
+        displayName:   user.displayName || snap.data().displayName || '',
+        lastSeen:      firebase.firestore.Timestamp.now()
+      });
+    }
+  }).catch(function(){});
+}
+
+// ── IR AL CURSO ───────────────────────────────────────────────
+function irAlCurso() {
+  sessionStorage.setItem('enar_access_ok', '1');
+  window.location.href = 'enar_FINAL_2026.html';
+}
+
+// ── CERRAR SESIÓN ─────────────────────────────────────────────
+function cerrarSesion() { auth.signOut(); }
+
+// ── LOGIN ─────────────────────────────────────────────────────
+function doLogin() {
+  var email = document.getElementById('l-email').value.trim();
+  var pass  = document.getElementById('l-pass').value;
+  var btn   = document.getElementById('btn-login');
+  if (!email || !pass) { showMsg('login','error','Completa todos los campos.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="sp"></span> Un momento...';
+  auth.signInWithEmailAndPassword(email, pass)
+    .then(function(cred) {
+      if (!cred.user.emailVerified) {
+        showMsg('login','error','📧 Verifica tu correo antes de entrar. Revisa tu bandeja (y el spam).');
+        cred.user.sendEmailVerification().catch(function(){});
+      }
+    })
+    .catch(function(e) {
+      showMsg('login','error', errMsg(e.code));
+    })
+    .finally(function() {
+      btn.disabled = false;
+      btn.innerHTML = 'Ingresar al curso →';
+    });
+}
+
+// ── REGISTRO ──────────────────────────────────────────────────
+// Código de acceso — cámbialo cuando quieras desde aquí
+var ACCESS_CODE = 'ENAR2026';
+
+function doRegister() {
+  var code  = document.getElementById('r-code').value.trim().toUpperCase();
+  var name  = document.getElementById('r-name').value.trim();
+  var email = document.getElementById('r-email').value.trim();
+  var pass  = document.getElementById('r-pass').value;
+  var pass2 = document.getElementById('r-pass2').value;
+  var btn   = document.getElementById('btn-reg');
+  if (!code) { showMsg('reg','error','Ingresa el código de acceso que recibiste al comprar.'); return; }
+  if (code !== ACCESS_CODE) { showMsg('reg','error','❌ Código incorrecto. Verifica el código que recibiste. Si compraste recientemente, escríbenos.'); return; }
+  if (!name||!email||!pass||!pass2) { showMsg('reg','error','Completa todos los campos.'); return; }
+  if (pass !== pass2) { showMsg('reg','error','Las contraseñas no coinciden.'); return; }
+  if (pass.length < 8) { showMsg('reg','error','La contraseña debe tener al menos 8 caracteres.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="sp"></span> Creando cuenta...';
+  auth.createUserWithEmailAndPassword(email, pass)
+    .then(function(cred) {
+      return cred.user.updateProfile({ displayName: name }).then(function() {
+        return db.collection('enar_users').doc(cred.user.uid).set({
+          uid:           cred.user.uid,
+          email:         email,
+          displayName:   name,
+          emailVerified: false,
+          createdAt:     firebase.firestore.Timestamp.now(),
+          blocked:       false
+        });
+      }).then(function() {
+        return cred.user.sendEmailVerification({ url: window.location.origin + '/login.html' });
+      });
+    })
+    .then(function() {
+      showMsg('reg','ok',
+        '✅ ¡Cuenta creada! Enviamos un correo de verificación a <strong>' + email + '</strong>.<br>' +
+        'Revisa tu bandeja (y el spam) y haz clic en el enlace. Luego regresa aquí a iniciar sesión.');
+      btn.textContent = '✓ Revisa tu correo';
+    })
+    .catch(function(e) {
+      showMsg('reg','error', errMsg(e.code));
+      btn.disabled = false;
+      btn.textContent = 'Crear cuenta →';
+    });
+}
+
+// ── GOOGLE ────────────────────────────────────────────────────
+function doGoogle() {
+  var provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(function(e) {
+    if (e.code !== 'auth/popup-closed-by-user') {
+      showMsg('login','error','Error con Google: ' + e.message);
+    }
+  });
+}
+
+// ── REENVIAR VERIFICACIÓN ─────────────────────────────────────
+function reenviarVerificacion() {
+  var user = auth.currentUser;
+  if (user) {
+    user.sendEmailVerification({ url: window.location.origin + '/login.html' })
+      .then(function() { alert('✅ Correo de verificación reenviado. Revisa tu bandeja.'); })
+      .catch(function(e) { alert('Error: ' + e.message); });
+  }
+}
+
+// ── RESET PASSWORD ────────────────────────────────────────────
+function doReset() {
+  var email = document.getElementById('l-email').value.trim();
+  if (!email) { showMsg('login','error','Escribe tu correo primero.'); return; }
+  auth.sendPasswordResetEmail(email)
+    .then(function() { showMsg('login','ok','📧 Enviamos el enlace para restablecer tu contraseña a ' + email); })
+    .catch(function(e) { showMsg('login','error', errMsg(e.code)); });
+}
+
+// ── NAVEGACIÓN TABS ───────────────────────────────────────────
+function showTab(tab) {
+  document.getElementById('form-login').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('form-reg').style.display   = tab==='reg'   ? 'block' : 'none';
+  document.getElementById('tab-login').className = 'tab' + (tab==='login' ? ' active' : '');
+  document.getElementById('tab-reg').className   = 'tab' + (tab==='reg'   ? ' active' : '');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function showMsg(pane, type, html) {
+  var el = document.getElementById('msg-'+pane);
+  el.className = 'alert show ' + type;
+  el.innerHTML = html;
+}
+
+function checkStr(v) {
+  var s = 0;
+  if(v.length>=8)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+  var cols = ['#e74c3c','#e67e22','#f1c40f','#2ecc71'];
+  var bar  = document.getElementById('str-bar');
+  bar.style.width      = (s*25) + '%';
+  bar.style.background = cols[s-1] || '#eee';
+}
+
+function errMsg(code) {
+  var m = {
+    'auth/user-not-found':     'Correo no registrado. Usa la pestaña Registrarse.',
+    'auth/wrong-password':     'Contraseña incorrecta.',
+    'auth/invalid-credential': 'Correo o contraseña incorrectos.',
+    'auth/email-already-in-use':'Ya existe una cuenta con ese correo. Inicia sesión.',
+    'auth/invalid-email':      'El correo no tiene un formato válido.',
+    'auth/too-many-requests':  'Demasiados intentos. Espera unos minutos.',
+    'auth/weak-password':      'Contraseña muy débil (mín. 8 caracteres).',
+    'auth/network-request-failed':'Sin conexión a internet.'
+  };
+  return m[code] || ('Error: ' + code);
+}
+</script>
+</body>
+</html>
