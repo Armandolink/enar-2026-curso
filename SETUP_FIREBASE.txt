@@ -1,0 +1,130 @@
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  GUÍA COMPLETA — FIREBASE SETUP · ENAR 2026 · Dr. AJSV     ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+## ARCHIVOS DEL SISTEMA
+─────────────────────────────────────────────────
+  login.html             → Página de acceso de los compradores
+  enar_FINAL_2026.html   → El curso completo (protegido)
+  admin.html             → Tu panel de administración
+─────────────────────────────────────────────────
+
+## PASO 1 — Crear proyecto Firebase (5 minutos, gratis)
+════════════════════════════════════════════════
+1. Ve a: https://console.firebase.google.com
+2. "Crear un proyecto" → nombre: enar-2026 → Continuar
+3. Desactiva Google Analytics → Crear proyecto
+
+## PASO 2 — Activar autenticación
+════════════════════════════════════════════════
+1. Menú izquierdo → "Build" → "Authentication" → "Comenzar"
+2. Pestaña "Sign-in method":
+   → Activa "Correo electrónico/Contraseña" → Guardar
+   → Activa "Google" → pon tu correo de soporte → Guardar
+
+## PASO 3 — Crear la base de datos Firestore
+════════════════════════════════════════════════
+1. Menú izquierdo → "Build" → "Firestore Database" → "Crear base de datos"
+2. Selecciona "Comenzar en modo producción" → Siguiente
+3. Ubicación: nam5 (us-central) → Listo
+
+4. Ahora ve a la pestaña "Reglas" y BORRA todo lo que hay
+5. PEGA exactamente esto (cambiando el correo admin):
+
+───────────────────── COPIA ESTO ─────────────────────
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /enar_users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.token.email == "TU_CORREO@gmail.com";
+    }
+    match /enar_sessions/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /enar_authorized/{docId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.email == "TU_CORREO@gmail.com";
+    }
+  }
+}
+──────────────────────────────────────────────────────
+
+6. Clic en "Publicar"
+
+## PASO 4 — Obtener las claves de configuración
+════════════════════════════════════════════════
+1. Clic en el ícono ⚙️ (arriba a la izquierda) → "Configuración del proyecto"
+2. Scroll hacia abajo → sección "Tus apps"
+3. Clic en "</>" (Web)
+4. Nombre de la app: "enar-web" → Registrar app
+5. Copia el bloque firebaseConfig que aparece:
+
+    const firebaseConfig = {
+      apiKey: "AIzaSy...",
+      authDomain: "enar-2026.firebaseapp.com",
+      projectId: "enar-2026",
+      storageBucket: "enar-2026.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123...:web:abc..."
+    };
+
+## PASO 5 — Pegar las claves en los 3 archivos HTML
+════════════════════════════════════════════════
+En los 3 archivos (login.html, enar_FINAL_2026.html, admin.html)
+busca la sección FIREBASE_CONFIG y reemplaza:
+
+  "PEGA_TU_apiKey_AQUI"            → tu apiKey
+  "PEGA_TU_authDomain_AQUI"        → tu authDomain
+  "PEGA_TU_projectId_AQUI"         → tu projectId
+  "PEGA_TU_storageBucket_AQUI"     → tu storageBucket
+  "PEGA_TU_messagingSenderId_AQUI" → tu messagingSenderId
+  "PEGA_TU_appId_AQUI"             → tu appId
+  "PEGA_TU_CORREO_ADMIN@gmail.com" → tu correo personal de Gmail
+
+## PASO 6 — Subir los archivos a internet (Netlify, gratis)
+════════════════════════════════════════════════
+1. Ve a: https://netlify.com → crea cuenta con tu Gmail
+2. Dashboard → clic en "Add new site" → "Deploy manually"
+3. ARRASTRA los 3 archivos al cuadro que aparece
+4. En 30 segundos tendrás una URL como:
+   https://enar2026-ajsv.netlify.app
+
+## PASO 7 — Configurar dominio personalizado (opcional)
+════════════════════════════════════════════════
+En Netlify → Site configuration → Domain management
+→ Add custom domain → sigue las instrucciones
+
+## FLUJO AUTOMÁTICO COMPLETO
+════════════════════════════════════════════════
+Cliente paga en Hotmart
+      ↓
+Tú abres admin.html → ingresas su correo → "Enviar acceso"
+      ↓
+Firebase le envía un correo automático:
+"Crea tu contraseña para acceder al curso ENAR 2026"
+      ↓
+Cliente hace clic → llega a login.html → crea su contraseña
+      ↓
+Accede al curso completo con su usuario personal
+      ↓
+Cada vez que regrese: correo + contraseña (o Google)
+
+## SI HOTMART TIENE WEBHOOK (automatización total)
+════════════════════════════════════════════════
+Hotmart → tu producto → Integraciones → Webhooks
+URL del webhook: https://TU-SITIO.netlify.app/webhook
+(Requiere una Cloud Function de Firebase — disponible a pedido)
+
+## COSTO TOTAL
+════════════════════════════════════════════════
+Firebase (Plan Spark, gratuito):
+  - Hasta 10,000 autenticaciones/mes: GRATIS
+  - Hasta 1 GB de Firestore: GRATIS
+  - Con 500 compradores: muy dentro del límite gratuito
+
+Netlify (Plan gratuito):
+  - Hosting de los 3 archivos HTML: GRATIS
+  - Actualizaciones ilimitadas: GRATIS
+
+TOTAL: $0 al mes hasta crecer mucho.

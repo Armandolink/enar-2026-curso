@@ -1,0 +1,32 @@
+// ═══════════════════════════════════════════════════════════
+// REGLAS FIRESTORE — ENAR 2026 · Dr. AJSV
+// Pega esto en: Firebase Console → Firestore → Reglas
+// ═══════════════════════════════════════════════════════════
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Usuarios del curso: cada usuario lee/escribe solo sus propios datos
+    match /enar_users/{userId} {
+      allow read, write: if request.auth != null 
+                         && request.auth.uid == userId;
+      // El admin puede leer y editar todos
+      allow read, write: if request.auth != null 
+                         && request.auth.token.email == "PEGA_TU_CORREO_ADMIN@gmail.com";
+    }
+
+    // Sesiones activas (para evitar usuarios simultáneos en 2 dispositivos)
+    match /enar_sessions/{userId} {
+      allow read, write: if request.auth != null 
+                         && request.auth.uid == userId;
+    }
+
+    // Emails autorizados: el admin escribe, cualquier autenticado puede leer el suyo
+    match /enar_authorized/{docId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null 
+                   && request.auth.token.email == "PEGA_TU_CORREO_ADMIN@gmail.com";
+    }
+  }
+}
