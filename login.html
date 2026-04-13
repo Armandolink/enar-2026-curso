@@ -239,8 +239,10 @@ auth.onAuthStateChanged(function(user) {
             blocked:       false
           }).then(function() {
             showLoggedPanel(user, { blocked: false });
-          }).catch(function(){
-            showLoggedPanel(user, { blocked: false });
+          }).catch(function(e){
+            console.error('Error creando registro:', e.code);
+            auth.signOut();
+            showMsg('login', 'error', '❌ Error al crear tu cuenta. Intenta de nuevo.');
           });
         } else {
           auth.signOut();
@@ -248,13 +250,22 @@ auth.onAuthStateChanged(function(user) {
           document.getElementById('pane-auth').style.display   = 'block';
           showMsg('login', 'error', '❌ Debes registrarte con el Código de Acceso o ser autorizado por el Administrador.');
         }
-      }).catch(function() {
-        showLoggedPanel(user, { blocked: false });
+      }).catch(function(e) {
+        // Firestore error al verificar enar_authorized → RECHAZAR
+        console.error('Error verificando autorización:', e.code);
+        auth.signOut();
+        document.getElementById('pane-logged').style.display = 'none';
+        document.getElementById('pane-auth').style.display   = 'block';
+        showMsg('login', 'error', '❌ Error de conexión. Intenta de nuevo en unos segundos.');
       });
     }
   }).catch(function(err) {
-    console.warn('Firestore error, dando acceso:', err.code);
-    showLoggedPanel(user, { blocked: false });
+    // Firestore error al verificar enar_users → RECHAZAR
+    console.error('Error verificando registro:', err.code);
+    auth.signOut();
+    document.getElementById('pane-logged').style.display = 'none';
+    document.getElementById('pane-auth').style.display   = 'block';
+    showMsg('login', 'error', '❌ Error de conexión. Intenta de nuevo.');
   });
 });
 
@@ -277,11 +288,10 @@ function showLoggedPanel(user, dbData) {
     notice.textContent = '✅ Sesión de administrador activa';
     btnAdmin.style.display  = 'block';
     btnCourse.style.display = 'none';
-  } else if (!user.emailVerified && user.providerData && user.providerData[0] && user.providerData[0].providerId === 'password') {
-    // Solo bloquear si son usuarios de email/contraseña sin verificar
-    // Google sign-in nunca necesita verificación adicional
+  } else if (!user.emailVerified) {
+    // Email NO verificado → bloquear acceso al curso hasta que verifique
     notice.className = 'user-notice notice-warn';
-    notice.innerHTML = '📧 Revisa tu correo y haz clic en el enlace de verificación para acceder al curso.<br><small style="margin-top:4px;display:block;">¿No recibiste el correo? <a href="#" onclick="reenviarVerificacion()" style="color:#E65100;">Reenviar</a></small>';
+    notice.innerHTML = '📧 Verifica tu cuenta: revisa tu correo y haz clic en el enlace de verificación.<br><small style="margin-top:4px;display:block;">¿No recibiste el correo? <a href="#" onclick="reenviarVerificacion()" style="color:#E65100;">Reenviar verificación</a></small>';
     btnCourse.style.display = 'none';
     btnAdmin.style.display  = 'none';
   } else {
