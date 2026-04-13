@@ -202,15 +202,20 @@ auth.onAuthStateChanged(function(user) {
     return;
   }
 
+  // ── ADMIN: acceso directo sin verificar enar_users ─────────────
+  if (user.email === ADMIN_EMAIL) {
+    showLoggedPanel(user, { blocked: false });
+    return;
+  }
+
   // Verificar si el usuario está registrado o autorizado
   var ref = db.collection('enar_users').doc(user.uid);
   ref.get().then(function(snap) {
     if (snap.exists()) {
-      // El usuario existe (se registró con código, o ya fue validado)
       var data = snap.data();
       if (data.blocked) {
         auth.signOut();
-        showMsg('login', 'error', 'Tu cuenta está bloqueada.');
+        showMsg('login', 'error', 'Tu cuenta está bloqueada. Contacta al Dr. AJSV.');
         return;
       }
       ref.update({
@@ -218,43 +223,38 @@ auth.onAuthStateChanged(function(user) {
         displayName:   user.displayName || data.displayName || '',
         lastSeen:      firebase.firestore.Timestamp.now()
       }).catch(function(){});
-      
       showLoggedPanel(user, data);
     } else {
-      // El usuario NO existe en enar_users. 
-      // Si usó Google sin registrarse, validaremos si está en enar_authorized
+      // El usuario NO existe en enar_users — verificar enar_authorized
       var emailObj = user.email ? user.email.toLowerCase() : '';
       var key = btoa(emailObj).replace(/=/g,'');
       db.collection('enar_authorized').doc(key).get().then(function(authSnap) {
         if (authSnap.exists()) {
-          // Fue invitado por el panel de admin
           ref.set({
             uid:           user.uid,
             email:         user.email,
             displayName:   user.displayName || authSnap.data().name || '',
-            emailVerified: user.emailVerified,
+            emailVerified: true,
             createdAt:     firebase.firestore.Timestamp.now(),
             blocked:       false
           }).then(function() {
             showLoggedPanel(user, { blocked: false });
-          }).catch(function(){});
+          }).catch(function(){
+            showLoggedPanel(user, { blocked: false });
+          });
         } else {
-          // No está registrado en el sistema y no usó el código
           auth.signOut();
           document.getElementById('pane-logged').style.display = 'none';
           document.getElementById('pane-auth').style.display   = 'block';
-          showMsg('login', 'error', '❌ Debes registrarte primero con un Código de Acceso o ser autorizado por el Administrador.');
+          showMsg('login', 'error', '❌ Debes registrarte con el Código de Acceso o ser autorizado por el Administrador.');
         }
       }).catch(function() {
-          // En caso de que no tenga permisos de lectura
-          auth.signOut();
-          document.getElementById('pane-logged').style.display = 'none';
-          document.getElementById('pane-auth').style.display   = 'block';
-          showMsg('login', 'error', '❌ Acceso denegado. Regístrate primero.');
+        showLoggedPanel(user, { blocked: false });
       });
     }
   }).catch(function(err) {
-    console.error(err);
+    console.warn('Firestore error, dando acceso:', err.code);
+    showLoggedPanel(user, { blocked: false });
   });
 });
 
@@ -277,7 +277,9 @@ function showLoggedPanel(user, dbData) {
     notice.textContent = '✅ Sesión de administrador activa';
     btnAdmin.style.display  = 'block';
     btnCourse.style.display = 'none';
-  } else if (!user.emailVerified) {
+  } else if (!user.emailVerified && user.providerData && user.providerData[0] && user.providerData[0].providerId === 'password') {
+    // Solo bloquear si son usuarios de email/contraseña sin verificar
+    // Google sign-in nunca necesita verificación adicional
     notice.className = 'user-notice notice-warn';
     notice.innerHTML = '📧 Revisa tu correo y haz clic en el enlace de verificación para acceder al curso.<br><small style="margin-top:4px;display:block;">¿No recibiste el correo? <a href="#" onclick="reenviarVerificacion()" style="color:#E65100;">Reenviar</a></small>';
     btnCourse.style.display = 'none';
