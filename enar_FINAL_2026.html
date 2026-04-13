@@ -4773,8 +4773,11 @@ if (!firebase.apps.length) {
 var _auth = firebase.auth();
 var _db   = firebase.firestore();
 
+var _kicked = false;
+
 _auth.onAuthStateChanged(function(user) {
   if (!user) {
+    if (_kicked) return;
     sessionStorage.clear();
     window.location.replace('login.html');
     return;
@@ -4844,6 +4847,7 @@ _auth.onAuthStateChanged(function(user) {
             clearInterval(heartbeatInterval);
             clearInterval(watchInterval);
             sessionStorage.clear();
+            _kicked = true;
             _auth.signOut().then(function() {
               showSessionKicked();
             });
@@ -4860,6 +4864,7 @@ _auth.onAuthStateChanged(function(user) {
             clearInterval(heartbeatInterval);
             clearInterval(watchInterval);
             sessionStorage.clear();
+            _kicked = true;
             _auth.signOut().then(showSessionKicked);
           }
         }).catch(function(){});
