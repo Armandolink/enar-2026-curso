@@ -135,11 +135,6 @@ h1 em{color:var(--teal);font-style:normal;}
         <span class="forgot" onclick="doReset()">¿Olvidaste tu contraseña?</span>
         <br><br>
         <button class="btn" id="btn-login" onclick="doLogin()">Ingresar al curso →</button>
-        <div class="divider"><hr><span>o continúa con</span><hr></div>
-        <button class="btn-google" onclick="doGoogle()">
-          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Continuar con Google
-        </button>
       </div>
 
       <!-- REGISTRO -->
@@ -160,11 +155,6 @@ h1 em{color:var(--teal);font-style:normal;}
           <input type="password" id="r-pass2" placeholder="Repite la contraseña"
             onkeydown="if(event.key==='Enter')doRegister()"></div>
         <button class="btn" id="btn-reg" onclick="doRegister()">Crear cuenta →</button>
-        <div class="divider"><hr><span>o continúa con</span><hr></div>
-        <button class="btn-google" onclick="doGoogle()">
-          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Continuar con Google
-        </button>
       </div>
     </div>
   </div>
@@ -202,70 +192,42 @@ auth.onAuthStateChanged(function(user) {
     return;
   }
 
-  // ── ADMIN: acceso directo sin verificar enar_users ─────────────
+  // ── ADMIN: acceso inmediato ────────────────────────────────
   if (user.email === ADMIN_EMAIL) {
-    showLoggedPanel(user, { blocked: false });
+    showLoggedPanel(user, { blocked: false, emailVerified: true });
     return;
   }
 
-  // Verificar si el usuario está registrado o autorizado
+  // ── USUARIO NORMAL: debe existir en enar_users ─────────────
   var ref = db.collection('enar_users').doc(user.uid);
   ref.get().then(function(snap) {
-    if (snap.exists()) {
-      var data = snap.data();
-      if (data.blocked) {
-        auth.signOut();
-        showMsg('login', 'error', 'Tu cuenta está bloqueada. Contacta al Dr. AJSV.');
-        return;
-      }
-      ref.update({
-        emailVerified: user.emailVerified,
-        displayName:   user.displayName || data.displayName || '',
-        lastSeen:      firebase.firestore.Timestamp.now()
-      }).catch(function(){});
-      showLoggedPanel(user, data);
-    } else {
-      // El usuario NO existe en enar_users — verificar enar_authorized
-      var emailObj = user.email ? user.email.toLowerCase() : '';
-      var key = btoa(emailObj).replace(/=/g,'');
-      db.collection('enar_authorized').doc(key).get().then(function(authSnap) {
-        if (authSnap.exists()) {
-          ref.set({
-            uid:           user.uid,
-            email:         user.email,
-            displayName:   user.displayName || authSnap.data().name || '',
-            emailVerified: true,
-            createdAt:     firebase.firestore.Timestamp.now(),
-            blocked:       false
-          }).then(function() {
-            showLoggedPanel(user, { blocked: false });
-          }).catch(function(e){
-            console.error('Error creando registro:', e.code);
-            auth.signOut();
-            showMsg('login', 'error', '❌ Error al crear tu cuenta. Intenta de nuevo.');
-          });
-        } else {
-          auth.signOut();
-          document.getElementById('pane-logged').style.display = 'none';
-          document.getElementById('pane-auth').style.display   = 'block';
-          showMsg('login', 'error', '❌ Debes registrarte con el Código de Acceso o ser autorizado por el Administrador.');
-        }
-      }).catch(function(e) {
-        // Firestore error al verificar enar_authorized → RECHAZAR
-        console.error('Error verificando autorización:', e.code);
-        auth.signOut();
-        document.getElementById('pane-logged').style.display = 'none';
-        document.getElementById('pane-auth').style.display   = 'block';
-        showMsg('login', 'error', '❌ Error de conexión. Intenta de nuevo en unos segundos.');
-      });
+    if (!snap.exists()) {
+      // NO registrado → rechazar
+      auth.signOut();
+      document.getElementById('pane-logged').style.display = 'none';
+      document.getElementById('pane-auth').style.display   = 'block';
+      showMsg('login', 'error', '❌ No tienes cuenta. Ve a la pestaña "Registrarse" y usa tu Código de Acceso.');
+      return;
     }
+    var data = snap.data();
+    if (data.blocked) {
+      auth.signOut();
+      showMsg('login', 'error', '🚫 Tu cuenta ha sido bloqueada. Contacta al Dr. AJSV.');
+      return;
+    }
+    // Actualizar estado de verificación en BD
+    ref.update({
+      emailVerified: user.emailVerified,
+      displayName:   user.displayName || data.displayName || '',
+      lastSeen:      firebase.firestore.Timestamp.now()
+    }).catch(function(){});
+    showLoggedPanel(user, data);
   }).catch(function(err) {
-    // Firestore error al verificar enar_users → RECHAZAR
-    console.error('Error verificando registro:', err.code);
+    console.error('Error Firestore:', err);
     auth.signOut();
     document.getElementById('pane-logged').style.display = 'none';
     document.getElementById('pane-auth').style.display   = 'block';
-    showMsg('login', 'error', '❌ Error de conexión. Intenta de nuevo.');
+    showMsg('login', 'error', '⚠️ Error de conexión. Intenta de nuevo en unos segundos.');
   });
 });
 
@@ -289,14 +251,14 @@ function showLoggedPanel(user, dbData) {
     btnAdmin.style.display  = 'block';
     btnCourse.style.display = 'none';
   } else if (!user.emailVerified) {
-    // Email NO verificado → bloquear acceso al curso hasta que verifique
+    // Email NO verificado → BLOQUEAR acceso al curso
     notice.className = 'user-notice notice-warn';
-    notice.innerHTML = '📧 Verifica tu cuenta: revisa tu correo y haz clic en el enlace de verificación.<br><small style="margin-top:4px;display:block;">¿No recibiste el correo? <a href="#" onclick="reenviarVerificacion()" style="color:#E65100;">Reenviar verificación</a></small>';
+    notice.innerHTML = '📧 <strong>Verifica tu cuenta</strong> para acceder al curso.<br>Revisa tu correo (bandeja de entrada y spam) y haz clic en el enlace de verificación.<br><small style="margin-top:6px;display:block;">¿No recibiste el correo? <a href="#" onclick="reenviarVerificacion()" style="color:#E65100;font-weight:600;">Reenviar verificación</a> · <a href="#" onclick="location.reload()" style="color:#E65100;">Ya verifiqué, recargar</a></small>';
     btnCourse.style.display = 'none';
     btnAdmin.style.display  = 'none';
   } else {
     notice.className = 'user-notice notice-ok';
-    notice.textContent = '✅ Sesión activa. Listo para estudiar.';
+    notice.textContent = '✅ Cuenta verificada. ¡Listo para estudiar!';
     btnCourse.style.display = 'block';
     btnAdmin.style.display  = 'none';
   }
@@ -381,15 +343,8 @@ function doRegister() {
     });
 }
 
-// ── GOOGLE ────────────────────────────────────────────────────
-function doGoogle() {
-  var provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(function(e) {
-    if (e.code !== 'auth/popup-closed-by-user') {
-      showMsg('login','error','Error con Google: ' + e.message);
-    }
-  });
-}
+// Google sign-in eliminado para usuarios — solo email/contraseña
+// Admin usa admin.html con Google sign-in
 
 // ── REENVIAR VERIFICACIÓN ─────────────────────────────────────
 function reenviarVerificacion() {
@@ -439,7 +394,7 @@ function errMsg(code) {
     'auth/user-not-found':     'Correo no registrado. Usa la pestaña Registrarse.',
     'auth/wrong-password':     'Contraseña incorrecta.',
     'auth/invalid-credential': 'Correo o contraseña incorrectos.',
-    'auth/email-already-in-use':'Ya existe una cuenta con ese correo. Inicia sesión.',
+    'auth/email-already-in-use':'Ya existe una cuenta con ese correo. Ve a "Iniciar sesión" y usa "¿Olvidaste tu contraseña?" para recuperar tu acceso.',
     'auth/invalid-email':      'El correo no tiene un formato válido.',
     'auth/too-many-requests':  'Demasiados intentos. Espera unos minutos.',
     'auth/weak-password':      'Contraseña muy débil (mín. 8 caracteres).',
