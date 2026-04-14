@@ -118,8 +118,7 @@ h1 em{color:var(--teal);font-style:normal;}
     <!-- Formularios login/registro -->
     <div id="pane-auth">
       <div class="tabs">
-        <button class="tab active" id="tab-login" onclick="showTab('login')">Iniciar sesión</button>
-        <button class="tab" id="tab-reg" onclick="showTab('reg')">Registrarse</button>
+        <button class="tab active" id="tab-login">Iniciar sesión</button>
       </div>
 
       <!-- LOGIN -->
@@ -136,27 +135,6 @@ h1 em{color:var(--teal);font-style:normal;}
         <br><br>
         <button class="btn" id="btn-login" onclick="doLogin()">Ingresar al curso →</button>
         <a href="/" style="display:block;text-align:center;margin-top:14px;font-size:13px;color:rgba(255,255,255,0.4);text-decoration:none;">← ¿No tienes cuenta? <span style="color:#1D9E75;text-decoration:underline;">Comprar acceso</span></a>
-      </div>
-
-      <!-- REGISTRO -->
-      <div id="form-reg" style="display:none;">
-        <div class="form-title">Crear cuenta</div>
-        <div class="form-sub">Usa el correo con el que compraste el curso.</div>
-        <div class="alert" id="msg-reg"></div>
-        <div class="field"><label>Código de acceso</label>
-          <input type="text" id="r-code" placeholder="Código que recibiste al comprar" style="letter-spacing:.1em;font-weight:700;text-transform:uppercase;"></div>
-        <div class="field"><label>Nombre completo</label>
-          <input type="text" id="r-name" placeholder="Dr. Juan Pérez"></div>
-        <div class="field"><label>Correo electrónico</label>
-          <input type="email" id="r-email" placeholder="tucorreo@gmail.com"></div>
-        <div class="field"><label>Contraseña (mín. 8 caracteres)</label>
-          <input type="password" id="r-pass" placeholder="Elige una contraseña segura" oninput="checkStr(this.value)">
-          <div class="bar"><div class="bar-fill" id="str-bar"></div></div></div>
-        <div class="field"><label>Confirmar contraseña</label>
-          <input type="password" id="r-pass2" placeholder="Repite la contraseña"
-            onkeydown="if(event.key==='Enter')doRegister()"></div>
-        <button class="btn" id="btn-reg" onclick="doRegister()">Crear cuenta →</button>
-        <a href="/" style="display:block;text-align:center;margin-top:14px;font-size:13px;color:rgba(255,255,255,0.4);text-decoration:none;">← ¿No tienes código? <span style="color:#1D9E75;text-decoration:underline;">Comprar acceso</span></a>
       </div>
     </div>
   </div>
@@ -311,86 +289,8 @@ function doLogin() {
     });
 }
 
-// ── REGISTRO ──────────────────────────────────────────────────
-// ENAR2026 = código maestro (admin). Códigos únicos ENAR-XXXX desde Firestore.
-var MASTER_CODE = 'ENAR2026';
-
-function doRegister() {
-  var code  = document.getElementById('r-code').value.trim().toUpperCase();
-  var name  = document.getElementById('r-name').value.trim();
-  var email = document.getElementById('r-email').value.trim();
-  var pass  = document.getElementById('r-pass').value;
-  var pass2 = document.getElementById('r-pass2').value;
-  var btn   = document.getElementById('btn-reg');
-  if (!code) { showMsg('reg','error','Ingresa el código de acceso que recibiste al comprar.'); return; }
-  if (!name||!email||!pass||!pass2) { showMsg('reg','error','Completa todos los campos.'); return; }
-  if (pass !== pass2) { showMsg('reg','error','Las contraseñas no coinciden.'); return; }
-  if (pass.length < 8) { showMsg('reg','error','La contraseña debe tener al menos 8 caracteres.'); return; }
-  btn.disabled = true;
-  btn.innerHTML = '<span class="sp"></span> Verificando código...';
-
-  // Validar código: maestro o único de Firestore
-  validateCode(code).then(function(valid) {
-    if (!valid) {
-      showMsg('reg','error','❌ Código incorrecto o ya utilizado. Verifica el código que recibiste al comprar.');
-      btn.disabled = false;
-      btn.textContent = 'Crear cuenta →';
-      return;
-    }
-    btn.innerHTML = '<span class="sp"></span> Creando cuenta...';
-    auth.createUserWithEmailAndPassword(email, pass)
-      .then(function(cred) {
-        return cred.user.updateProfile({ displayName: name }).then(function() {
-          return db.collection('enar_users').doc(cred.user.uid).set({
-            uid:           cred.user.uid,
-            email:         email,
-            displayName:   name,
-            emailVerified: false,
-            accessCode:    code,
-            createdAt:     firebase.firestore.Timestamp.now(),
-            blocked:       false
-          });
-        }).then(function() {
-          // Marcar código como usado (si no es maestro)
-          if (code !== MASTER_CODE) {
-            db.collection('enar_codes').doc(code).update({
-              status: 'used',
-              usedBy: cred.user.uid,
-              usedByEmail: email,
-              usedAt: firebase.firestore.Timestamp.now()
-            }).catch(function(){});
-          }
-          return cred.user.sendEmailVerification({ url: window.location.origin + '/login.html' });
-        });
-      })
-      .then(function() {
-        localStorage.removeItem('enar_purchase_code');
-        showMsg('reg','ok',
-          '✅ ¡Cuenta creada! Enviamos un correo de verificación a <strong>' + email + '</strong>.<br>' +
-          'Revisa tu bandeja (y el spam) y haz clic en el enlace. Luego regresa aquí a iniciar sesión.');
-        btn.textContent = '✓ Revisa tu correo';
-      })
-      .catch(function(e) {
-        showMsg('reg','error', errMsg(e.code));
-        btn.disabled = false;
-        btn.textContent = 'Crear cuenta →';
-      });
-  });
-}
-
-function validateCode(code) {
-  // Código maestro siempre válido
-  if (code === MASTER_CODE) return Promise.resolve(true);
-  // Códigos únicos: verificar en Firestore
-  return db.collection('enar_codes').doc(code).get().then(function(snap) {
-    if (!snap.exists) return false;
-    var data = snap.data();
-    return data.status === 'pending';
-  }).catch(function() { return false; });
-}
-
 // Google sign-in eliminado para usuarios — solo email/contraseña
-// Admin usa admin.html con Google sign-in
+// Registro ahora se hace en gracias.html (post-pago)
 
 // ── REENVIAR VERIFICACIÓN ─────────────────────────────────────
 function reenviarVerificacion() {
@@ -409,14 +309,6 @@ function doReset() {
   auth.sendPasswordResetEmail(email)
     .then(function() { showMsg('login','ok','📧 Enviamos el enlace para restablecer tu contraseña a ' + email); })
     .catch(function(e) { showMsg('login','error', errMsg(e.code)); });
-}
-
-// ── NAVEGACIÓN TABS ───────────────────────────────────────────
-function showTab(tab) {
-  document.getElementById('form-login').style.display = tab==='login' ? 'block' : 'none';
-  document.getElementById('form-reg').style.display   = tab==='reg'   ? 'block' : 'none';
-  document.getElementById('tab-login').className = 'tab' + (tab==='login' ? ' active' : '');
-  document.getElementById('tab-reg').className   = 'tab' + (tab==='reg'   ? ' active' : '');
 }
 
 // ── HELPERS ───────────────────────────────────────────────────

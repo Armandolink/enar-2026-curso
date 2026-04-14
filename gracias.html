@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ENAR 2026 · ¡Pago exitoso!</title>
+<title>ENAR 2026 · ¡Pago exitoso! — Crea tu cuenta</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -16,45 +16,59 @@ body::before{content:'';position:absolute;inset:0;
 
 @keyframes fadeup{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @keyframes confetti{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 
 .container{width:100%;max-width:480px;position:relative;z-index:10;}
-.card{background:rgba(255,255,255,0.97);border-radius:20px;padding:36px 28px;
-  box-shadow:0 30px 80px rgba(0,0,0,0.5);animation:fadeup .5s ease both;text-align:center;}
+.card{background:rgba(255,255,255,0.97);border-radius:20px;padding:32px 28px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.5);animation:fadeup .5s ease both;}
 
-.check{width:64px;height:64px;border-radius:50%;
+.check{width:58px;height:58px;border-radius:50%;
   background:linear-gradient(135deg,var(--teal),var(--teal-d));
-  display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:30px;}
+  display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:26px;}
 
-h1{font-family:'DM Serif Display',serif;font-size:24px;color:#111;margin-bottom:6px;}
+h1{font-family:'DM Serif Display',serif;font-size:22px;color:#111;text-align:center;margin-bottom:4px;}
 h1 em{color:var(--teal);font-style:normal;}
-.sub{font-size:13px;color:#888;margin-bottom:24px;line-height:1.6;}
+.sub{font-size:13px;color:#888;text-align:center;margin-bottom:20px;line-height:1.5;}
 
-.code-box{background:#f4f6f9;border:2px dashed var(--teal);border-radius:14px;
-  padding:20px;margin-bottom:6px;}
-.code-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:8px;}
-.code-value{font-family:'DM Sans',monospace;font-size:32px;font-weight:800;color:var(--teal);
-  letter-spacing:.15em;animation:pulse 2s ease infinite;user-select:all;}
-.code-hint{font-size:11px;color:#aaa;margin-top:8px;margin-bottom:20px;}
+.alert{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none;line-height:1.5;}
+.alert.error{display:block;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;}
+.alert.ok{display:block;background:var(--teal-l);border:1px solid #a7f3d0;color:#065f46;}
+
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#666;margin-bottom:5px;}
+.field input{width:100%;padding:12px 14px;border:1.5px solid #e2e6ea;border-radius:10px;font-size:14px;
+  font-family:inherit;outline:none;transition:all .2s;background:#f9fafb;}
+.field input:focus{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(29,158,117,0.1);}
+
+.bar{height:4px;background:#e5e7eb;border-radius:4px;margin-top:6px;overflow:hidden;}
+.bar-fill{height:100%;width:0;border-radius:4px;transition:all .3s;}
 
 .btn{display:block;width:100%;padding:14px;border:none;border-radius:12px;
   background:linear-gradient(135deg,var(--teal),var(--teal-d));
   color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
-  transition:all .2s;text-decoration:none;text-align:center;margin-bottom:10px;}
+  transition:all .2s;text-decoration:none;text-align:center;margin-top:6px;}
 .btn:hover{transform:translateY(-1px);box-shadow:0 8px 25px rgba(29,158,117,0.35);}
-.btn-copy{background:none;border:1.5px solid #e2e6ea;color:#666;font-size:13px;padding:10px;}
-.btn-copy:hover{border-color:var(--teal);color:var(--teal);}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none;}
+.sp{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);
+  border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-.steps{text-align:left;margin:20px 0;padding:0 8px;}
-.step{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;}
-.step-num{width:26px;height:26px;border-radius:50%;background:var(--teal-l);color:var(--teal-d);
-  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
-.step-txt{font-size:13px;color:#555;line-height:1.5;}
-.step-txt strong{color:#111;}
+.steps{margin:16px 0 0;padding:0;text-align:center;}
+.steps p{font-size:12px;color:#999;line-height:1.6;}
+.steps a{color:var(--teal);font-weight:600;}
+
+/* Success panel */
+#pane-success{display:none;text-align:center;}
+#pane-success .success-icon{width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),var(--teal-d));
+  display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:30px;}
+#pane-success h2{font-family:'DM Serif Display',serif;font-size:20px;color:#111;margin-bottom:8px;}
+#pane-success p{font-size:13px;color:#666;line-height:1.6;margin-bottom:16px;}
+.btn-outline{display:block;width:100%;padding:12px;border:1.5px solid #e2e6ea;border-radius:12px;
+  background:none;color:#666;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;
+  transition:all .2s;text-decoration:none;text-align:center;margin-top:10px;}
+.btn-outline:hover{border-color:var(--teal);color:var(--teal);}
 
 .footer{margin-top:18px;font-size:9px;color:rgba(255,255,255,0.2);text-align:center;}
-
-/* Confetti */
 .confetti-piece{position:fixed;width:8px;height:8px;border-radius:2px;top:-10px;z-index:1;
   animation:confetti 3s ease-out forwards;}
 </style>
@@ -63,43 +77,47 @@ h1 em{color:var(--teal);font-style:normal;}
 
 <div class="container">
   <div class="card">
-    <div class="check">✅</div>
-    <h1>¡Pago <em>exitoso</em>!</h1>
-    <p class="sub">Tu acceso al curso ENAR 2026 está listo. Usa el código de abajo para crear tu cuenta.</p>
+    <!-- FORM PANEL -->
+    <div id="pane-form">
+      <div class="check">✅</div>
+      <h1>¡Pago <em>exitoso</em>!</h1>
+      <p class="sub">Crea tu cuenta para acceder al curso ENAR 2026.<br>Completa el formulario abajo.</p>
 
-    <div class="code-box">
-      <div class="code-label">Tu código de acceso único</div>
-      <div class="code-value" id="code-display">Generando...</div>
-    </div>
-    <p class="code-hint">⚠️ Guarda este código. Solo funciona una vez.</p>
+      <div class="alert" id="msg-reg"></div>
 
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-txt"><strong>Copia tu código</strong> de arriba (haz clic en "Copiar código")</div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-txt"><strong>Crea tu cuenta</strong> con tu correo, contraseña y el código</div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-txt"><strong>Verifica tu correo</strong> (revisa tu bandeja y spam)</div>
-      </div>
-      <div class="step">
-        <div class="step-num">4</div>
-        <div class="step-txt"><strong>¡Listo!</strong> Inicia sesión y accede al curso</div>
+      <div class="field"><label>Nombre completo</label>
+        <input type="text" id="r-name" placeholder="Dr. Juan Pérez"></div>
+      <div class="field"><label>Correo electrónico</label>
+        <input type="email" id="r-email" placeholder="tucorreo@gmail.com"></div>
+      <div class="field"><label>Contraseña (mín. 8 caracteres)</label>
+        <input type="password" id="r-pass" placeholder="Elige una contraseña segura" oninput="checkStr(this.value)">
+        <div class="bar"><div class="bar-fill" id="str-bar"></div></div></div>
+      <div class="field"><label>Confirmar contraseña</label>
+        <input type="password" id="r-pass2" placeholder="Repite la contraseña"
+          onkeydown="if(event.key==='Enter')doRegister()"></div>
+
+      <button class="btn" id="btn-reg" onclick="doRegister()">Crear mi cuenta →</button>
+
+      <div class="steps">
+        <p>¿Ya tienes cuenta? <a href="login.html">Iniciar sesión</a></p>
       </div>
     </div>
 
-    <button class="btn btn-copy" id="btn-copy" onclick="copyCode()">📋 Copiar código</button>
-    <a class="btn" id="btn-go" href="#">Crear mi cuenta →</a>
+    <!-- SUCCESS PANEL -->
+    <div id="pane-success">
+      <div class="success-icon">📧</div>
+      <h2>¡Cuenta creada!</h2>
+      <p id="success-msg">Enviamos un correo de verificación. Revisa tu bandeja (y el spam).</p>
+      <a class="btn" href="login.html">Ir a iniciar sesión →</a>
+      <button class="btn-outline" onclick="reenviar()">Reenviar correo de verificación</button>
+    </div>
   </div>
   <p class="footer">© 2025–2026 Dr. AJSV · ENAR 2026 · Acceso personal e intransferible</p>
 </div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
 firebase.initializeApp({
@@ -110,63 +128,88 @@ firebase.initializeApp({
   messagingSenderId: "503924898282",
   appId:             "1:503924898282:web:79660ac202a880d3279a93"
 });
-var db = firebase.firestore();
+var auth = firebase.auth();
+var db   = firebase.firestore();
 
-function generateCode() {
-  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  var code = 'ENAR-';
-  for (var i = 0; i < 4; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
+function showMsg(type, text) {
+  var el = document.getElementById('msg-reg');
+  el.className = 'alert ' + type;
+  el.innerHTML = text;
 }
 
-// Check if we already generated one (avoid duplicates on refresh)
-var storedCode = localStorage.getItem('enar_purchase_code');
-var code;
-
-if (storedCode) {
-  code = storedCode;
-  showCode(code);
-} else {
-  code = generateCode();
-  // Save to Firestore
-  db.collection('enar_codes').doc(code).set({
-    code: code,
-    status: 'pending',
-    createdAt: firebase.firestore.Timestamp.now()
-  }).then(function() {
-    localStorage.setItem('enar_purchase_code', code);
-    showCode(code);
-  }).catch(function(e) {
-    console.error('Error guardando código:', e);
-    // Still show the code even if Firestore fails
-    showCode(code);
-  });
+function checkStr(v) {
+  var bar = document.getElementById('str-bar');
+  var s = 0;
+  if (v.length >= 8) s++;
+  if (/[A-Z]/.test(v)) s++;
+  if (/[0-9]/.test(v)) s++;
+  if (/[^A-Za-z0-9]/.test(v)) s++;
+  var colors = ['#ef4444','#f59e0b','#22c55e','#059669'];
+  bar.style.width = (s * 25) + '%';
+  bar.style.background = colors[s - 1] || '#ef4444';
 }
 
-function showCode(c) {
-  document.getElementById('code-display').textContent = c;
-  document.getElementById('btn-go').href = 'login.html?tab=reg&code=' + encodeURIComponent(c);
-}
+function doRegister() {
+  var name  = document.getElementById('r-name').value.trim();
+  var email = document.getElementById('r-email').value.trim();
+  var pass  = document.getElementById('r-pass').value;
+  var pass2 = document.getElementById('r-pass2').value;
+  var btn   = document.getElementById('btn-reg');
 
-function copyCode() {
-  var c = document.getElementById('code-display').textContent;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(c).then(function() {
-      document.getElementById('btn-copy').textContent = '✅ ¡Código copiado!';
-      setTimeout(function() { document.getElementById('btn-copy').textContent = '📋 Copiar código'; }, 2000);
+  if (!name || !email || !pass || !pass2) { showMsg('error', 'Completa todos los campos.'); return; }
+  if (pass !== pass2) { showMsg('error', 'Las contraseñas no coinciden.'); return; }
+  if (pass.length < 8) { showMsg('error', 'La contraseña debe tener al menos 8 caracteres.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="sp"></span> Creando cuenta...';
+
+  auth.createUserWithEmailAndPassword(email, pass)
+    .then(function(cred) {
+      return cred.user.updateProfile({ displayName: name }).then(function() {
+        // Guardar en Firestore
+        return db.collection('enar_users').doc(cred.user.uid).set({
+          uid:           cred.user.uid,
+          email:         email,
+          displayName:   name,
+          emailVerified: false,
+          accessCode:    'PAGO-DIRECTO',
+          createdAt:     firebase.firestore.Timestamp.now(),
+          blocked:       false
+        });
+      }).then(function() {
+        // Enviar verificación
+        return cred.user.sendEmailVerification({ url: window.location.origin + '/login.html' });
+      });
+    })
+    .then(function() {
+      // Mostrar panel de éxito
+      document.getElementById('pane-form').style.display = 'none';
+      document.getElementById('pane-success').style.display = 'block';
+      document.getElementById('success-msg').innerHTML =
+        'Enviamos un correo de verificación a <strong>' + email + '</strong>.<br>' +
+        'Revisa tu bandeja (y el spam), haz clic en el enlace, y luego inicia sesión.';
+      auth.signOut();
+    })
+    .catch(function(e) {
+      var msg = 'Error desconocido.';
+      if (e.code === 'auth/email-already-in-use') msg = 'Este correo ya tiene cuenta. <a href="login.html">Inicia sesión aquí</a>.';
+      else if (e.code === 'auth/invalid-email') msg = 'El correo no tiene un formato válido.';
+      else if (e.code === 'auth/weak-password') msg = 'La contraseña es muy débil. Usa al menos 8 caracteres.';
+      else msg = e.message || msg;
+      showMsg('error', msg);
+      btn.disabled = false;
+      btn.textContent = 'Crear mi cuenta →';
     });
+}
+
+function reenviar() {
+  var user = auth.currentUser;
+  if (user) {
+    user.sendEmailVerification({ url: window.location.origin + '/login.html' })
+      .then(function() { alert('✅ Correo reenviado. Revisa tu bandeja.'); })
+      .catch(function() { alert('Espera unos segundos antes de reenviar.'); });
   } else {
-    // Fallback
-    var ta = document.createElement('textarea');
-    ta.value = c;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    document.getElementById('btn-copy').textContent = '✅ ¡Código copiado!';
-    setTimeout(function() { document.getElementById('btn-copy').textContent = '📋 Copiar código'; }, 2000);
+    alert('Ya cerramos tu sesión. Ve a login.html e inicia sesión para reenviar la verificación.');
   }
 }
 
