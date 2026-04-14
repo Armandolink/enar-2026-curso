@@ -198,36 +198,48 @@ auth.onAuthStateChanged(function(user) {
     return;
   }
 
-  // ── USUARIO NORMAL: debe existir en enar_users ─────────────
-  var ref = db.collection('enar_users').doc(user.uid);
-  ref.get().then(function(snap) {
-    if (!snap.exists) {
-      // NO registrado → rechazar
-      auth.signOut();
-      document.getElementById('pane-logged').style.display = 'none';
-      document.getElementById('pane-auth').style.display   = 'block';
-      showMsg('login', 'error', '❌ No tienes cuenta. Ve a la pestaña "Registrarse" y usa tu Código de Acceso.');
-      return;
-    }
-    var data = snap.data();
-    if (data.blocked) {
-      auth.signOut();
-      showMsg('login', 'error', '🚫 Tu cuenta ha sido bloqueada. Contacta al Dr. AJSV.');
-      return;
-    }
-    // Actualizar estado de verificación en BD
-    ref.update({
-      emailVerified: user.emailVerified,
-      displayName:   user.displayName || data.displayName || '',
-      lastSeen:      firebase.firestore.Timestamp.now()
-    }).catch(function(){});
-    showLoggedPanel(user, data);
-  }).catch(function(err) {
-    console.error('Error Firestore:', err);
-    auth.signOut();
-    document.getElementById('pane-logged').style.display = 'none';
-    document.getElementById('pane-auth').style.display   = 'block';
-    showMsg('login', 'error', '⚠️ Error de conexión. Intenta de nuevo en unos segundos.');
+  // ── USUARIO NORMAL: forzar refresh de token y leer Firestore ──
+  function leerUsuario(intento) {
+    var ref = db.collection('enar_users').doc(user.uid);
+    ref.get().then(function(snap) {
+      if (!snap.exists) {
+        auth.signOut();
+        document.getElementById('pane-logged').style.display = 'none';
+        document.getElementById('pane-auth').style.display   = 'block';
+        showMsg('login', 'error', '❌ No tienes cuenta. Ve a la pestaña "Registrarse" y usa tu Código de Acceso.');
+        return;
+      }
+      var data = snap.data();
+      if (data.blocked) {
+        auth.signOut();
+        showMsg('login', 'error', '🚫 Tu cuenta ha sido bloqueada. Contacta al Dr. AJSV.');
+        return;
+      }
+      ref.update({
+        emailVerified: user.emailVerified,
+        displayName:   user.displayName || data.displayName || '',
+        lastSeen:      firebase.firestore.Timestamp.now()
+      }).catch(function(){});
+      showLoggedPanel(user, data);
+    }).catch(function(err) {
+      console.warn('Firestore intento ' + intento + ':', err.code || err.message || err);
+      if (intento < 3) {
+        setTimeout(function() { leerUsuario(intento + 1); }, 1500);
+      } else {
+        console.error('Error Firestore definitivo:', err);
+        auth.signOut();
+        document.getElementById('pane-logged').style.display = 'none';
+        document.getElementById('pane-auth').style.display   = 'block';
+        showMsg('login', 'error', '⚠️ Error de conexión. Intenta de nuevo en unos segundos.');
+      }
+    });
+  }
+
+  // Forzar refresh del token de auth antes de tocar Firestore
+  user.getIdToken(true).then(function() {
+    leerUsuario(1);
+  }).catch(function() {
+    leerUsuario(1);
   });
 });
 
