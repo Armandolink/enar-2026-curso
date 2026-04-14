@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENAR 2026 · ¡Pago exitoso!</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--teal:#1D9E75;--teal-d:#0F6E56;--teal-l:#E1F5EE;--gold:#C9A84C;--slate:#0F1923;}
+body{font-family:'DM Sans',sans-serif;background:var(--slate);min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  position:relative;overflow:hidden;}
+body::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 30%,rgba(29,158,117,0.18) 0%,transparent 60%);}
+
+@keyframes fadeup{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes confetti{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+.container{width:100%;max-width:480px;position:relative;z-index:10;}
+.card{background:rgba(255,255,255,0.97);border-radius:20px;padding:36px 28px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.5);animation:fadeup .5s ease both;text-align:center;}
+
+.check{width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),var(--teal-d));
+  display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:30px;}
+
+h1{font-family:'DM Serif Display',serif;font-size:24px;color:#111;margin-bottom:6px;}
+h1 em{color:var(--teal);font-style:normal;}
+.sub{font-size:13px;color:#888;margin-bottom:24px;line-height:1.6;}
+
+.code-box{background:#f4f6f9;border:2px dashed var(--teal);border-radius:14px;
+  padding:20px;margin-bottom:6px;}
+.code-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:8px;}
+.code-value{font-family:'DM Sans',monospace;font-size:32px;font-weight:800;color:var(--teal);
+  letter-spacing:.15em;animation:pulse 2s ease infinite;user-select:all;}
+.code-hint{font-size:11px;color:#aaa;margin-top:8px;margin-bottom:20px;}
+
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:12px;
+  background:linear-gradient(135deg,var(--teal),var(--teal-d));
+  color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:all .2s;text-decoration:none;text-align:center;margin-bottom:10px;}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 25px rgba(29,158,117,0.35);}
+.btn-copy{background:none;border:1.5px solid #e2e6ea;color:#666;font-size:13px;padding:10px;}
+.btn-copy:hover{border-color:var(--teal);color:var(--teal);}
+
+.steps{text-align:left;margin:20px 0;padding:0 8px;}
+.step{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--teal-l);color:var(--teal-d);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
+.step-txt{font-size:13px;color:#555;line-height:1.5;}
+.step-txt strong{color:#111;}
+
+.footer{margin-top:18px;font-size:9px;color:rgba(255,255,255,0.2);text-align:center;}
+
+/* Confetti */
+.confetti-piece{position:fixed;width:8px;height:8px;border-radius:2px;top:-10px;z-index:1;
+  animation:confetti 3s ease-out forwards;}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card">
+    <div class="check">✅</div>
+    <h1>¡Pago <em>exitoso</em>!</h1>
+    <p class="sub">Tu acceso al curso ENAR 2026 está listo. Usa el código de abajo para crear tu cuenta.</p>
+
+    <div class="code-box">
+      <div class="code-label">Tu código de acceso único</div>
+      <div class="code-value" id="code-display">Generando...</div>
+    </div>
+    <p class="code-hint">⚠️ Guarda este código. Solo funciona una vez.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-txt"><strong>Copia tu código</strong> de arriba (haz clic en "Copiar código")</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-txt"><strong>Crea tu cuenta</strong> con tu correo, contraseña y el código</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-txt"><strong>Verifica tu correo</strong> (revisa tu bandeja y spam)</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-txt"><strong>¡Listo!</strong> Inicia sesión y accede al curso</div>
+      </div>
+    </div>
+
+    <button class="btn btn-copy" id="btn-copy" onclick="copyCode()">📋 Copiar código</button>
+    <a class="btn" id="btn-go" href="#">Crear mi cuenta →</a>
+  </div>
+  <p class="footer">© 2025–2026 Dr. AJSV · ENAR 2026 · Acceso personal e intransferible</p>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:            "AIzaSyCSrFkPQ8t-CK0KiWNs9VZ_kAJCN01yeww",
+  authDomain:        "enar-2026.firebaseapp.com",
+  projectId:         "enar-2026",
+  storageBucket:     "enar-2026.firebasestorage.app",
+  messagingSenderId: "503924898282",
+  appId:             "1:503924898282:web:79660ac202a880d3279a93"
+});
+var db = firebase.firestore();
+
+function generateCode() {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var code = 'ENAR-';
+  for (var i = 0; i < 4; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+// Check if we already generated one (avoid duplicates on refresh)
+var storedCode = localStorage.getItem('enar_purchase_code');
+var code;
+
+if (storedCode) {
+  code = storedCode;
+  showCode(code);
+} else {
+  code = generateCode();
+  // Save to Firestore
+  db.collection('enar_codes').doc(code).set({
+    code: code,
+    status: 'pending',
+    createdAt: firebase.firestore.Timestamp.now()
+  }).then(function() {
+    localStorage.setItem('enar_purchase_code', code);
+    showCode(code);
+  }).catch(function(e) {
+    console.error('Error guardando código:', e);
+    // Still show the code even if Firestore fails
+    showCode(code);
+  });
+}
+
+function showCode(c) {
+  document.getElementById('code-display').textContent = c;
+  document.getElementById('btn-go').href = 'login.html?tab=reg&code=' + encodeURIComponent(c);
+}
+
+function copyCode() {
+  var c = document.getElementById('code-display').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(c).then(function() {
+      document.getElementById('btn-copy').textContent = '✅ ¡Código copiado!';
+      setTimeout(function() { document.getElementById('btn-copy').textContent = '📋 Copiar código'; }, 2000);
+    });
+  } else {
+    // Fallback
+    var ta = document.createElement('textarea');
+    ta.value = c;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    document.getElementById('btn-copy').textContent = '✅ ¡Código copiado!';
+    setTimeout(function() { document.getElementById('btn-copy').textContent = '📋 Copiar código'; }, 2000);
+  }
+}
+
+// Confetti effect
+var colors = ['#1D9E75','#C9A84C','#fff','#34d399','#fbbf24'];
+for (var i = 0; i < 30; i++) {
+  var el = document.createElement('div');
+  el.className = 'confetti-piece';
+  el.style.left = Math.random() * 100 + '%';
+  el.style.background = colors[Math.floor(Math.random() * colors.length)];
+  el.style.animationDelay = (Math.random() * 2) + 's';
+  el.style.animationDuration = (2 + Math.random() * 2) + 's';
+  document.body.appendChild(el);
+}
+</script>
+</body>
+</html>

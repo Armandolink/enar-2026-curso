@@ -298,8 +298,8 @@ function doLogin() {
 }
 
 // ── REGISTRO ──────────────────────────────────────────────────
-// Código de acceso — cámbialo cuando quieras desde aquí
-var ACCESS_CODE = 'ENAR2026';
+// ENAR2026 = código maestro (admin). Códigos únicos ENAR-XXXX desde Firestore.
+var MASTER_CODE = 'ENAR2026';
 
 function doRegister() {
   var code  = document.getElementById('r-code').value.trim().toUpperCase();
@@ -309,38 +309,70 @@ function doRegister() {
   var pass2 = document.getElementById('r-pass2').value;
   var btn   = document.getElementById('btn-reg');
   if (!code) { showMsg('reg','error','Ingresa el código de acceso que recibiste al comprar.'); return; }
-  if (code !== ACCESS_CODE) { showMsg('reg','error','❌ Código incorrecto. Verifica el código que recibiste. Si compraste recientemente, escríbenos.'); return; }
   if (!name||!email||!pass||!pass2) { showMsg('reg','error','Completa todos los campos.'); return; }
   if (pass !== pass2) { showMsg('reg','error','Las contraseñas no coinciden.'); return; }
   if (pass.length < 8) { showMsg('reg','error','La contraseña debe tener al menos 8 caracteres.'); return; }
   btn.disabled = true;
-  btn.innerHTML = '<span class="sp"></span> Creando cuenta...';
-  auth.createUserWithEmailAndPassword(email, pass)
-    .then(function(cred) {
-      return cred.user.updateProfile({ displayName: name }).then(function() {
-        return db.collection('enar_users').doc(cred.user.uid).set({
-          uid:           cred.user.uid,
-          email:         email,
-          displayName:   name,
-          emailVerified: false,
-          createdAt:     firebase.firestore.Timestamp.now(),
-          blocked:       false
-        });
-      }).then(function() {
-        return cred.user.sendEmailVerification({ url: window.location.origin + '/login.html' });
-      });
-    })
-    .then(function() {
-      showMsg('reg','ok',
-        '✅ ¡Cuenta creada! Enviamos un correo de verificación a <strong>' + email + '</strong>.<br>' +
-        'Revisa tu bandeja (y el spam) y haz clic en el enlace. Luego regresa aquí a iniciar sesión.');
-      btn.textContent = '✓ Revisa tu correo';
-    })
-    .catch(function(e) {
-      showMsg('reg','error', errMsg(e.code));
+  btn.innerHTML = '<span class="sp"></span> Verificando código...';
+
+  // Validar código: maestro o único de Firestore
+  validateCode(code).then(function(valid) {
+    if (!valid) {
+      showMsg('reg','error','❌ Código incorrecto o ya utilizado. Verifica el código que recibiste al comprar.');
       btn.disabled = false;
       btn.textContent = 'Crear cuenta →';
-    });
+      return;
+    }
+    btn.innerHTML = '<span class="sp"></span> Creando cuenta...';
+    auth.createUserWithEmailAndPassword(email, pass)
+      .then(function(cred) {
+        return cred.user.updateProfile({ displayName: name }).then(function() {
+          return db.collection('enar_users').doc(cred.user.uid).set({
+            uid:           cred.user.uid,
+            email:         email,
+            displayName:   name,
+            emailVerified: false,
+            accessCode:    code,
+            createdAt:     firebase.firestore.Timestamp.now(),
+            blocked:       false
+          });
+        }).then(function() {
+          // Marcar código como usado (si no es maestro)
+          if (code !== MASTER_CODE) {
+            db.collection('enar_codes').doc(code).update({
+              status: 'used',
+              usedBy: cred.user.uid,
+              usedByEmail: email,
+              usedAt: firebase.firestore.Timestamp.now()
+            }).catch(function(){});
+          }
+          return cred.user.sendEmailVerification({ url: window.location.origin + '/login.html' });
+        });
+      })
+      .then(function() {
+        localStorage.removeItem('enar_purchase_code');
+        showMsg('reg','ok',
+          '✅ ¡Cuenta creada! Enviamos un correo de verificación a <strong>' + email + '</strong>.<br>' +
+          'Revisa tu bandeja (y el spam) y haz clic en el enlace. Luego regresa aquí a iniciar sesión.');
+        btn.textContent = '✓ Revisa tu correo';
+      })
+      .catch(function(e) {
+        showMsg('reg','error', errMsg(e.code));
+        btn.disabled = false;
+        btn.textContent = 'Crear cuenta →';
+      });
+  });
+}
+
+function validateCode(code) {
+  // Código maestro siempre válido
+  if (code === MASTER_CODE) return Promise.resolve(true);
+  // Códigos únicos: verificar en Firestore
+  return db.collection('enar_codes').doc(code).get().then(function(snap) {
+    if (!snap.exists()) return false;
+    var data = snap.data();
+    return data.status === 'pending';
+  }).catch(function() { return false; });
 }
 
 // Google sign-in eliminado para usuarios — solo email/contraseña
@@ -388,6 +420,23 @@ function checkStr(v) {
   bar.style.width      = (s*25) + '%';
   bar.style.background = cols[s-1] || '#eee';
 }
+
+// ── AUTO-FILL CODE FROM URL ───────────────────────────────────
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var tab = params.get('tab');
+  var code = params.get('code');
+  if (tab === 'reg') {
+    setTimeout(function() { showTab('reg'); }, 100);
+  }
+  if (code) {
+    setTimeout(function() {
+      var el = document.getElementById('r-code');
+      if (el) { el.value = code; el.style.background = '#E1F5EE'; }
+      showTab('reg');
+    }, 150);
+  }
+})();
 
 function errMsg(code) {
   var m = {
