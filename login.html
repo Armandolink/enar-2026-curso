@@ -201,7 +201,7 @@ auth.onAuthStateChanged(function(user) {
   // ── USUARIO NORMAL: debe existir en enar_users ─────────────
   var ref = db.collection('enar_users').doc(user.uid);
   ref.get().then(function(snap) {
-    if (!snap.exists()) {
+    if (!snap.exists) {
       // NO registrado → rechazar
       auth.signOut();
       document.getElementById('pane-logged').style.display = 'none';
@@ -369,7 +369,7 @@ function validateCode(code) {
   if (code === MASTER_CODE) return Promise.resolve(true);
   // Códigos únicos: verificar en Firestore
   return db.collection('enar_codes').doc(code).get().then(function(snap) {
-    if (!snap.exists()) return false;
+    if (!snap.exists) return false;
     var data = snap.data();
     return data.status === 'pending';
   }).catch(function() { return false; });
