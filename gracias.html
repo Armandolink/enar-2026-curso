@@ -151,7 +151,7 @@ function checkStr(v) {
 
 function doRegister() {
   var name  = document.getElementById('r-name').value.trim();
-  var email = document.getElementById('r-email').value.trim();
+  var email = document.getElementById('r-email').value.trim().toLowerCase();
   var pass  = document.getElementById('r-pass').value;
   var pass2 = document.getElementById('r-pass2').value;
   var btn   = document.getElementById('btn-reg');
@@ -161,23 +161,59 @@ function doRegister() {
   if (pass.length < 8) { showMsg('error', 'La contraseña debe tener al menos 8 caracteres.'); return; }
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="sp"></span> Creando cuenta...';
+  btn.innerHTML = '<span class="sp"></span> Verificando pago...';
+
+  // Verificar si el email tiene pago aprobado en Firestore
+  db.collection('enar_authorized_emails').doc(email).get()
+    .then(function(snap) {
+      if (snap.exists && snap.data().used) {
+        showMsg('error', 'Este correo ya fue usado para crear una cuenta. Si necesitas ayuda, contacta al Dr. AJSV.');
+        btn.disabled = false;
+        btn.textContent = 'Crear mi cuenta →';
+        return Promise.reject('already-used');
+      }
+      // Si existe y no está usado → pago verificado por webhook ✅
+      // Si NO existe → modo fallback (webhook aún no configurado, permitir registro)
+      var paymentVerified = snap.exists && !snap.data().used;
+      btn.innerHTML = '<span class="sp"></span> Creando cuenta...';
+      return crearCuenta(name, email, pass, paymentVerified);
+    })
+    .catch(function(err) {
+      if (err === 'already-used') return;
+      console.error('Error verificando pago:', err);
+      // Si Firestore falla, permitir registro (modo fallback)
+      btn.innerHTML = '<span class="sp"></span> Creando cuenta...';
+      return crearCuenta(name, email, pass, false);
+    });
+}
+
+function crearCuenta(name, email, pass, paymentVerified) {
+  var btn = document.getElementById('btn-reg');
 
   auth.createUserWithEmailAndPassword(email, pass)
     .then(function(cred) {
       return cred.user.updateProfile({ displayName: name }).then(function() {
         // Guardar en Firestore
         return db.collection('enar_users').doc(cred.user.uid).set({
-          uid:           cred.user.uid,
-          email:         email,
-          displayName:   name,
-          emailVerified: false,
-          accessCode:    'PAGO-DIRECTO',
-          createdAt:     firebase.firestore.Timestamp.now(),
-          blocked:       false
+          uid:             cred.user.uid,
+          email:           email,
+          displayName:     name,
+          emailVerified:   false,
+          paymentVerified: paymentVerified,
+          accessCode:      paymentVerified ? 'WEBHOOK-VERIFICADO' : 'PAGO-DIRECTO',
+          createdAt:       firebase.firestore.Timestamp.now(),
+          blocked:         false
         });
       }).then(function() {
-        // Enviar verificación
+        // Marcar email como usado si tenía pago verificado
+        if (paymentVerified) {
+          db.collection('enar_authorized_emails').doc(email).update({
+            used: true,
+            usedByUid: cred.user.uid,
+            usedAt: firebase.firestore.Timestamp.now()
+          }).catch(function(){});
+        }
+        // Enviar verificación de email
         return cred.user.sendEmailVerification({ url: window.location.origin + '/login.html' });
       });
     })

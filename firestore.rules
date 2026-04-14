@@ -21,11 +21,23 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.token.email == "armadojoseventura@gmail.com";
     }
 
-    // Codigos de acceso unicos post-pago
+    // Codigos de acceso (legacy)
     match /enar_codes/{codeId} {
       allow read: if true;
       allow create: if true;
       allow update: if request.auth != null;
+    }
+
+    // Pagos registrados por webhook de Wompi (solo lectura publica, escritura por Cloud Function)
+    match /enar_payments/{paymentId} {
+      allow read: if true;
+      allow write: if false; // Solo Cloud Functions (admin SDK) puede escribir
+    }
+
+    // Emails autorizados por pago confirmado (lectura publica para verificar en registro)
+    match /enar_authorized_emails/{email} {
+      allow read: if true;
+      allow write: if false; // Solo Cloud Functions (admin SDK) puede escribir
     }
   }
 }
