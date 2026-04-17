@@ -13,7 +13,9 @@
       "**/.*",
       "SETUP_FIREBASE.txt",
       "firestore_rules.txt",
-      "functions/**"
+      "firestore.rules",
+      "functions/**",
+      "**/node_modules/**"
     ],
     "headers": [
       {
